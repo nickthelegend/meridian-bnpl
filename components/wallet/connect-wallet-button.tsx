@@ -1,22 +1,12 @@
-"use client"
+'use client';
 
-import { usePrivy } from "@privy-io/react-auth"
-import { Button } from "@/components/ui/button"
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { Button } from '@/components/ui/button';
 
 export function ConnectWalletButton() {
-  const { login, logout, authenticated, user } = usePrivy()
-
-  const address = user?.wallet?.address
-
   return (
-    <Button
-      onClick={authenticated ? logout : login}
-      className="bg-[#b1ef4a] hover:bg-[#b1ef4a]/90 text-black rounded-full"
-    >
-      {authenticated && address
-        ? `${address.slice(0, 4)}...${address.slice(-4)}`
-        : "Connect Wallet"}
-    </Button>
-  )
+    <div className="flex items-center gap-2">
+      <WalletMultiButton className="!bg-primary hover:!bg-primary/90 !rounded-xl !h-10 !font-bold !text-xs !px-4" />
+    </div>
+  );
 }
-
