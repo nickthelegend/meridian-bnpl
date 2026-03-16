@@ -1,5 +1,9 @@
-import { AnchorProvider, Program, Idl, Wallet } from "@coral-xyz/anchor";
+import { AnchorProvider, Program, Idl } from "@coral-xyz/anchor";
 import { Connection, PublicKey } from "@solana/web3.js";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@/convex/_generated/api";
+
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 // Placeholder IDs for the client
 export const PROGRAM_IDS = {
@@ -19,19 +23,59 @@ export class MeridianClient {
   }
 
   async depositCollateral(amount: number, lockDuration: number) {
-    // Logic to call collateralVault.deposit_collateral
     console.log(`[Client] Depositing ${amount} USDC for ${lockDuration}s`);
-    return "tx_hash_placeholder";
+    const txHash = "simulated_tx_hash_" + Math.random().toString(36).slice(2);
+    
+    // Wire Convex
+    await convex.mutation(api.vaults.createVault, {
+        userWallet: this.provider.wallet.publicKey.toBase58(),
+        amount: amount
+    });
+    
+    return txHash;
   }
 
-  async issueCreditLine(collateralAmount: number) {
-    // Logic to call creditEngine.issue_credit_line
-    return "tx_hash_placeholder";
+  async initiateCheckout(totalAmount: number, merchantPubkey: PublicKey, orderId: string) {
+    console.log(`[Client] Initiating BNPL for ${totalAmount} USDC`);
+    const txHash = "simulated_tx_hash_" + Math.random().toString(36).slice(2);
+
+    // Wire Convex
+    await convex.mutation(api.orders.createOrder, {
+        orderId,
+        userWallet: this.provider.wallet.publicKey.toBase58(),
+        merchantWallet: merchantPubkey.toBase58(),
+        totalAmount,
+        installmentAmount: totalAmount / 3,
+    });
+
+    await convex.mutation(api.merchants.updateGMV, {
+        merchantWallet: merchantPubkey.toBase58(),
+        amount: totalAmount
+    });
+
+    return txHash;
   }
 
-  async initiateCheckout(totalAmount: number, orderId: string) {
-    // Logic to call bnplCheckout.initiate_bnpl
-    return "tx_hash_placeholder";
+  async payInstallment(orderId: string, index: number) {
+    const txHash = "simulated_tx_hash_" + Math.random().toString(36).slice(2);
+    
+    // Wire Convex
+    await convex.mutation(api.orders.updateInstallment, {
+        orderId,
+        index,
+        txSignature: txHash
+    });
+
+    return txHash;
+  }
+
+  async withdrawCollateral() {
+    const userWallet = this.provider.wallet.publicKey.toBase58();
+    
+    // Wire Convex
+    await convex.mutation(api.vaults.unlockVault, { userWallet });
+    
+    return "simulated_tx_hash";
   }
 
   async getVaultState() {

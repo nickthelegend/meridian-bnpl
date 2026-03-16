@@ -2,147 +2,55 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
-  users: defineTable({
-    walletAddress: v.string(), // EOA or Privy Address
-    email: v.optional(v.string()),
-    name: v.optional(v.string()),
-    role: v.optional(v.string()), // merchant, user, admin
-  })
-    .index("by_wallet", ["walletAddress"])
-    .index("by_email", ["email"]),
+  orders: defineTable({
+    orderId: v.string(),
+    userWallet: v.string(),
+    merchantWallet: v.string(),
+    totalAmount: v.number(),
+    installmentAmount: v.number(),
+    paidCount: v.number(),
+    status: v.string(), // active | complete | overdue
+    createdAt: v.number(),
+    nextDueDate: v.number(),
+    txSignatures: v.array(v.string()),
+  }).index("by_user", ["userWallet"])
+    .index("by_merchant", ["merchantWallet"]),
+
+  vaults: defineTable({
+    userWallet: v.string(),
+    collateralAmount: v.number(),
+    yieldEarned: v.number(),
+    lockStatus: v.string(), // locked | unlocked
+    createdAt: v.number(),
+    unlockedAt: v.optional(v.number()),
+  }).index("by_user", ["userWallet"]),
+
+  creditLines: defineTable({
+    userWallet: v.string(),
+    creditLimit: v.number(),
+    amountDrawn: v.number(),
+    interestRate: v.number(),
+    netCost: v.number(),
+    status: v.string(), // active | repaid
+  }).index("by_user", ["userWallet"]),
 
   merchants: defineTable({
-    userId: v.id("users"),
-    name: v.string(),
-    description: v.optional(v.string()),
-    category: v.optional(v.string()),
-    logoUrl: v.optional(v.string()),
-    website: v.optional(v.string()),
-    creditLimit: v.optional(v.number()),
-    usedCredit: v.optional(v.number()),
-    status: v.string(), // active, pending, suspended
-    isVerified: v.boolean(),
-  })
-    .index("by_user", ["userId"])
-    .index("by_status", ["status"]),
+    merchantWallet: v.string(),
+    businessName: v.string(),
+    totalGMV: v.number(),
+    activeOrders: v.number(),
+    settledAmount: v.number(),
+    defaultRate: v.number(),
+    createdAt: v.number(),
+  }).index("by_wallet", ["merchantWallet"]),
 
-  apps: defineTable({
-    userId: v.id("users"),
-    name: v.string(),
-    description: v.optional(v.string()),
-    category: v.optional(v.string()),
-    clientId: v.string(),
-    clientSecret: v.string(),
-    network: v.string(), // e.g. creditcoin_testnet
-    status: v.string(), // active, inactive
-    webhookUrl: v.optional(v.string()),
-  })
-    .index("by_user", ["userId"])
-    .index("by_client_id", ["clientId"]),
-
-  apiKeys: defineTable({
-    appId: v.id("apps"),
-    key: v.string(),
-    name: v.string(),
-    status: v.string(),
-  })
-    .index("by_app", ["appId"])
-    .index("by_key", ["key"]),
-
-  webhooks: defineTable({
-    appId: v.id("apps"),
-    url: v.string(),
-    events: v.array(v.string()),
-    secret: v.string(),
-    status: v.string(),
-  }).index("by_app", ["appId"]),
-
-  webhookLogs: defineTable({
-    appId: v.id("apps"),
-    webhookId: v.id("webhooks"),
-    event: v.string(),
-    payload: v.any(),
-    status: v.number(), // HTTP Status code
-    response: v.optional(v.string()),
-    timestamp: v.number(),
-  }).index("by_app", ["appId"]),
-
-  pools: defineTable({
-    name: v.string(),
-    asset: v.string(),
-    tvl: v.number(),
-    apr: v.number(),
-    lpBalance: v.number(),
-    physicalBalance: v.number(),
-    status: v.string(),
-  }).index("by_name", ["name"]),
-
-  limits: defineTable({
-    userId: v.id("users"),
-    asset: v.string(),
-    currentLimit: v.number(),
-    used: v.number(),
-  }).index("by_user", ["userId"]),
-
-  transactions: defineTable({
-    userId: v.optional(v.id("users")),
-    userAddress: v.string(),
-    title: v.string(),
+  installments: defineTable({
+    orderId: v.string(),
+    index: v.number(),
     amount: v.number(),
-    asset: v.string(),
-    status: v.string(), // pending, completed, failed
-    category: v.string(), // spend, repayment, deposit, withdrawal
-    txHash: v.optional(v.string()),
-    hubTxHash: v.optional(v.string()),
-    chainId: v.optional(v.number()),
-  })
-    .index("by_user", ["userId"])
-    .index("by_user_address", ["userAddress"])
-    .index("by_tx_hash", ["txHash"]),
-
-  deposits: defineTable({
-    userAddress: v.string(),
-    amount: v.number(),
-    tokenAddress: v.string(),
-    asset: v.optional(v.string()), // Added for easier lookup (USDC, USDT, etc.)
-    txHash: v.string(),
-    hubTxHash: v.optional(v.string()),
-    chainKey: v.number(),
-    status: v.string(), // PENDING, Synced, Failed
-    proof: v.optional(v.any()), // Cached Merkle Proof
-  })
-    .index("by_user", ["userAddress"])
-    .index("by_tx_hash", ["txHash"]),
-
-  bridgeTransactions: defineTable({
-    userAddress: v.string(),
-    sourceChainId: v.number(),
-    targetChainId: v.number(),
-    amount: v.number(),
-    txHash: v.string(),
-    status: v.string(),
-  }).index("by_user", ["userAddress"]),
-
-  balances: defineTable({
-    userAddress: v.string(),
-    network: v.string(),
-    symbol: v.string(),
-    balance: v.number(),
-    updatedAt: v.number(),
-  })
-    .index("by_user", ["userAddress"])
-    .index("by_user_network", ["userAddress", "network"])
-    .index("by_user_network_symbol", ["userAddress", "network", "symbol"]),
-
-  bills: defineTable({
-    appId: v.id("apps"),
-    amount: v.number(),
-    asset: v.string(),
-    description: v.optional(v.string()),
-    metadata: v.optional(v.any()),
-    hash: v.string(),
-    status: v.string(), // pending, paid, expired
-  })
-    .index("by_hash", ["hash"])
-    .index("by_app", ["appId"]),
+    dueDate: v.number(),
+    paidAt: v.optional(v.number()),
+    txSignature: v.optional(v.string()),
+    status: v.string(), // pending | paid | overdue
+  }).index("by_order", ["orderId"]),
 });

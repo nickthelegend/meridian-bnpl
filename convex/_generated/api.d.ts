@@ -9,7 +9,9 @@
  */
 
 import type * as merchants from "../merchants.js";
+import type * as orders from "../orders.js";
 import type * as seed from "../seed.js";
+import type * as vaults from "../vaults.js";
 
 import type {
   ApiFromModules,
@@ -19,7 +21,9 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   merchants: typeof merchants;
+  orders: typeof orders;
   seed: typeof seed;
+  vaults: typeof vaults;
 }>;
 
 /**
