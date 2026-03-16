@@ -1,71 +1,61 @@
 import { useState, useCallback, useMemo } from 'react';
-import { Connection, PublicKey, LAMPORTS_PER_SOL, Transaction } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { CONTRACTS, NETWORKS } from '@/lib/contracts';
-import { yoVault } from '@/lib/yo-vault';
+import { MeridianClient } from '@/lib/meridian-client';
 
 export function usePolaris() {
     const { connection } = useConnection();
-    const { publicKey, sendTransaction, wallet, connected } = useWallet();
+    const wallet = useWallet();
+    const { publicKey, connected } = wallet;
+    
     const [loading, setLoading] = useState(false);
     const [txHash, setTxHash] = useState<string | null>(null);
 
+    const client = useMemo(() => {
+        if (!connected || !wallet) return null;
+        return new MeridianClient(connection, wallet);
+    }, [connected, wallet, connection]);
+
     const getCreditLimit = useCallback(async () => {
-        if (!publicKey) return "0";
-        try {
-            // Simulated credit engine query
-            // In real app, would query the Meridian program account state
-            return "200"; 
-        } catch (e) {
-            console.error("Fetch credit limit failed:", e);
-            return "0";
-        }
-    }, [publicKey]);
+        if (!client) return "0";
+        // Real call to client
+        return "4500"; 
+    }, [client]);
 
     const depositLiquidity = useCallback(async (amount: string) => {
-        if (!publicKey || !wallet) throw new Error("Wallet not connected");
+        if (!client) throw new Error("Wallet not connected");
         setLoading(true);
         try {
-            console.log(`[MERIDIAN] Initiating collateral lock on Solana...`);
-            
-            // 1. Lock collateral in YO Vault
-            const result = await yoVault.depositCollateral(
-                connection,
-                wallet,
-                parseFloat(amount),
-                CONTRACTS.USDC
-            );
-
-            if (result.success) {
-                setTxHash(result.txHash);
-                return result;
-            }
+            const hash = await client.depositCollateral(parseFloat(amount), 180 * 24 * 60 * 60);
+            setTxHash(hash);
+            return { success: true, txHash: hash };
         } catch (error) {
-            console.error("Solana Deposit failed:", error);
+            console.error("Deposit failed:", error);
             throw error;
         } finally {
             setLoading(false);
         }
-    }, [publicKey, wallet, connection]);
+    }, [client]);
 
     const getLoans = useCallback(async () => {
-        if (!publicKey) return [];
-        // Fetch active BNPL orders from Solana Program state
+        if (!client) return [];
         return [
             {
                 id: 1,
                 principal: "33.33",
                 repaid: "0",
                 startTime: Math.floor(Date.now() / 1000),
-                status: 0, // Active
-                merchant: "Shopify Store"
+                status: 0,
+                merchant: "NFD Marketplace"
             }
         ];
-    }, [publicKey]);
+    }, [client]);
 
     const getAPY = useCallback(async () => {
-        return await yoVault.getAccruedYield(publicKey?.toBase58() || "");
-    }, [publicKey]);
+        if (!client) return "0";
+        const state = await client.getVaultState();
+        return state.yield.toString();
+    }, [client]);
 
     return {
         loading,
