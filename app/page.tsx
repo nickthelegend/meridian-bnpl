@@ -10,6 +10,10 @@ import {
   History,
   ArrowUpRight,
   ChevronRight,
+  ShieldCheck,
+  TrendingUp,
+  CreditCard,
+  Droplets
 } from "lucide-react"
 
 import { LandingPage } from "@/components/landing-page"
@@ -17,12 +21,13 @@ import { usePrivy } from "@privy-io/react-auth"
 import { usePolaris } from "@/hooks/use-polaris"
 import { useState, useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
+import { motion } from "framer-motion"
 
 export default function Page() {
   const { authenticated, user } = usePrivy()
   const address = user?.wallet?.address
 
-  const { getCreditLimit, getLoans, loading: polarisLoading } = usePolaris()
+  const { getCreditLimit, getLoans, musdcBalance, loading: polarisLoading } = usePolaris()
   const transactions = useQuery(api.merchants.listTransactions, { userAddress: address }) ?? []
 
   const [realStats, setRealStats] = useState({
@@ -83,73 +88,104 @@ export default function Page() {
   const { limit: total, used, available, pct } = realStats
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 font-mono">
-      <div className="lg:col-span-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs font-bold tracking-[0.2em] text-foreground/50 uppercase">
-            Credit Analytics // Terminal
-          </h2>
-          <div className="flex items-center gap-2 px-2 py-0.5 rounded border border-primary/30 bg-primary/5 text-[10px] text-primary font-bold tracking-wider uppercase">
-            <div className="w-1 h-1 rounded-full bg-primary animate-pulse" />
-            Active_Session
+    <div className="space-y-8 animate-in fade-in duration-700 font-display">
+      
+      {/* Header Info */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h2 className="text-4xl font-black italic text-primary uppercase tracking-tighter">My Account</h2>
+            <div className="bg-secondary/10 text-secondary px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border border-secondary/20">
+                Verified Hub
+            </div>
           </div>
+          <p className="text-[10px] font-bold text-muted uppercase tracking-[0.2em] italic">Meridian Institutional Credit // Devnet</p>
         </div>
-
-        <div className="bg-card/20 border border-border/40 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-            <div className="space-y-4">
-              <div>
-                <div className="text-[10px] text-foreground/50 uppercase tracking-widest mb-1">Available Liquidity</div>
-                <div className="text-5xl font-bold tracking-tight text-foreground">
-                  ${available.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+        
+        <Link href="/faucet" className="group">
+            <div className="bg-white border border-primary/5 px-6 py-4 rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center gap-4">
+                <div className="w-10 h-10 bg-primary/5 rounded-xl flex items-center justify-center text-primary">
+                    <Droplets size={20} />
                 </div>
-                <div className="text-[10px] text-foreground/30 uppercase mt-2">
-                  Sys_Total_Limit: ${total.toFixed(2)}
+                <div>
+                    <p className="text-[9px] font-black text-muted uppercase tracking-wider">Available mUSDC</p>
+                    <p className="text-xl font-mono font-bold text-primary">{musdcBalance.toLocaleString()} <span className="text-[10px] opacity-40">mUSDC</span></p>
+                </div>
+                <ChevronRight className="text-primary/20 group-hover:translate-x-1 transition-transform" size={16} />
+            </div>
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* Main Credit Terminal */}
+        <div className="lg:col-span-8 space-y-8">
+          
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="meridian-card p-10 relative overflow-hidden bg-white"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
+              <div className="space-y-6">
+                <div>
+                  <div className="text-[10px] text-muted font-black uppercase tracking-[0.2em] mb-2 italic">Available Liquidity</div>
+                  <div className="text-6xl font-mono font-black tracking-tighter text-primary italic">
+                    ${available.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                  </div>
+                  <div className="flex items-center gap-2 mt-4">
+                    <div className="w-2 h-2 bg-[#0B7B5E] rounded-full animate-pulse" />
+                    <span className="text-[9px] font-bold text-muted uppercase tracking-widest">System Limit: ${total.toFixed(0)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6 flex flex-col justify-center">
+                <div className="flex justify-between items-end">
+                  <div className="text-[10px] text-muted font-black uppercase tracking-[0.2em] italic">Utilization</div>
+                  <div className="text-lg font-mono font-bold text-[#0B7B5E]">{pct}%</div>
+                </div>
+                <div className="h-4 bg-[#F7F8FA] rounded-full overflow-hidden border border-primary/5 p-1">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pct}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                    className="h-full bg-primary rounded-full"
+                  />
+                </div>
+                <div className="flex justify-between text-[9px] font-black text-muted uppercase tracking-tighter">
+                  <span className="flex items-center gap-1.5"><TrendingUp size={10}/> Debt: ${(used).toFixed(2)}</span>
+                  <span className="flex items-center gap-1.5"><ShieldCheck size={10}/> Safety Buffer: ${available.toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex justify-between items-end">
-                <div className="text-[10px] text-foreground/50 uppercase tracking-widest">Utilization_Rate</div>
-                <div className="text-sm font-bold text-primary">{pct}%</div>
-              </div>
-              <div className="h-3 bg-secondary rounded-full overflow-hidden border border-border/20">
-                <div
-                  className="h-full bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)] transition-all duration-500"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-[10px] text-foreground/40 uppercase">
-                <span>Debt: ${(used).toFixed(2)}</span>
-                <span>Buffer: ${available.toFixed(2)}</span>
-              </div>
+            <div className="mt-10 pt-10 border-t border-primary/5 grid grid-cols-1 sm:grid-cols-3 gap-6">
+               <div className="space-y-1">
+                  <p className="text-[9px] font-black text-muted uppercase italic">Next Settlement</p>
+                  <p className="text-lg font-bold text-primary">{realStats.nextDue}</p>
+               </div>
+               <div className="space-y-1">
+                  <p className="text-[9px] font-black text-muted uppercase italic">Minimum Due</p>
+                  <p className="text-lg font-bold text-[#0B7B5E]">${realStats.minDue}</p>
+               </div>
+               <div className="space-y-1">
+                  <p className="text-[9px] font-black text-muted uppercase italic">APR Rating</p>
+                  <p className="text-lg font-bold text-primary">0.00% <span className="text-[8px] text-muted font-normal uppercase">Tier A</span></p>
+               </div>
             </div>
-          </div>
 
-          <div className="mt-8 pt-8 border-t border-border/20">
-            <div className="text-[10px] text-foreground/50 uppercase tracking-widest mb-4">Upcoming Obligations</div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-background/40 border border-border/30 rounded-xl p-4">
-                <div className="text-[9px] text-foreground/40 uppercase mb-2">Next Settlement</div>
-                <div className="text-sm font-bold">{realStats.nextDue}</div>
-              </div>
-              <div className="bg-background/40 border border-border/30 rounded-xl p-4">
-                <div className="text-[9px] text-foreground/40 uppercase mb-2">Minimum Due</div>
-                <div className="text-sm font-bold text-primary">${realStats.minDue}</div>
-              </div>
-              <div className="bg-background/40 border border-border/30 rounded-xl p-4">
-                <div className="text-[9px] text-foreground/40 uppercase mb-2">Accrued Interest</div>
-                <div className="text-sm font-bold">0.00% APR</div>
-              </div>
-            </div>
-          </div>
-        </div>
+            <Image 
+                src="/logos/meridian-mark.svg" 
+                alt="" width={300} height={300} 
+                className="absolute -bottom-20 -right-20 opacity-[0.02] pointer-events-none" 
+            />
+          </motion.div>
 
-        <div className="bg-card/20 border border-border/40 rounded-2xl p-6 backdrop-blur-sm">
-          <div className="text-[10px] text-foreground/50 uppercase tracking-widest mb-6">Network Nodes & Partners</div>
-          <div className="overflow-x-auto scrollbar-hide">
-            <div className="flex gap-6 pb-2">
+          {/* Partner Grid */}
+          <div className="space-y-4">
+            <h3 className="text-[10px] font-black text-muted uppercase tracking-[0.3em] italic px-2">Ecosystem Partners</h3>
+            <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-9 gap-4">
               {[
                 { name: "Zomato", logo: "/logos/zomato.svg" },
                 { name: "Swiggy", logo: "/logos/swiggy.png" },
@@ -163,14 +199,14 @@ export default function Page() {
               ].map((partner, i) => (
                 <div
                   key={i}
-                  className="flex-shrink-0 w-12 h-12 rounded-xl bg-secondary/50 border border-border/30 flex items-center justify-center grayscale hover:grayscale-0 transition-all cursor-pointer overflow-hidden p-2"
+                  className="aspect-square rounded-2xl bg-white border border-primary/5 flex items-center justify-center grayscale hover:grayscale-0 hover:border-primary/20 transition-all cursor-pointer p-3 shadow-sm group"
                 >
                   <Image
                     src={partner.logo}
                     alt={partner.name}
-                    width={32}
-                    height={32}
-                    className="object-contain"
+                    width={24}
+                    height={24}
+                    className="object-contain group-hover:scale-110 transition-transform"
                     unoptimized
                   />
                 </div>
@@ -178,71 +214,74 @@ export default function Page() {
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="lg:col-span-4 space-y-6">
-        <div className="bg-card/20 border border-border/40 rounded-2xl p-6 backdrop-blur-sm space-y-4">
-          <div className="text-[10px] text-foreground/50 uppercase tracking-widest mb-2">Quick Actions</div>
-          <Link href="/checkout" className="block">
-            <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-6 rounded-xl flex items-center justify-center gap-3 group">
-              <Zap className="w-5 h-5 fill-current group-hover:scale-110 transition-transform" />
-              <span>EXECUTE_PAYMENT</span>
-            </Button>
-          </Link>
-          <Link href="/transactions" className="block">
-            <Button variant="secondary" className="w-full bg-secondary hover:bg-secondary/80 text-foreground font-bold py-6 rounded-xl flex items-center justify-center gap-3">
-              <History className="w-5 h-5" />
-              <span>QUERY_HISTORY</span>
-            </Button>
-          </Link>
-          <Link href="/limits" className="block">
-            <Button variant="secondary" className="w-full bg-secondary hover:bg-secondary/80 text-foreground font-bold py-6 rounded-xl flex items-center justify-center gap-3">
-              <ArrowUpRight className="w-5 h-5" />
-              <span>LIMIT_EXPANSION</span>
-            </Button>
-          </Link>
-        </div>
-
-        <div className="bg-card/20 border border-border/40 rounded-2xl p-6 backdrop-blur-sm flex flex-col h-full min-h-[400px]">
-          <div className="flex items-center justify-between mb-6">
-            <div className="text-[10px] text-foreground/50 uppercase tracking-widest">Activity Stream</div>
-            <div className="flex items-center gap-1.5 text-[10px] text-foreground/30 uppercase">
-              Live
-              <div className="w-1 h-1 rounded-full bg-primary animate-pulse" />
+        {/* Sidebar Actions & Activity */}
+        <div className="lg:col-span-4 space-y-8">
+          <div className="meridian-card p-8 space-y-4 bg-primary text-white border-none shadow-xl">
+            <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] italic">Quick Terminal</h3>
+            <Link href="/checkout" className="block">
+              <Button className="w-full bg-white hover:bg-white/90 text-primary font-black py-7 rounded-xl flex items-center justify-center gap-3 group italic uppercase text-xs">
+                <Zap className="w-4 h-4 fill-primary group-hover:scale-110 transition-transform" />
+                <span>Initialize Checkout</span>
+              </Button>
+            </Link>
+            <div className="grid grid-cols-2 gap-3">
+                <Link href="/transactions">
+                    <Button variant="outline" className="w-full border-white/10 hover:bg-white/5 text-white font-black py-6 rounded-xl text-[10px] uppercase italic">
+                        <History className="w-3 h-3 mr-2" /> History
+                    </Button>
+                </Link>
+                <Link href="/limits">
+                    <Button variant="outline" className="w-full border-white/10 hover:bg-white/5 text-white font-black py-6 rounded-xl text-[10px] uppercase italic">
+                        <ArrowUpRight className="w-3 h-3 mr-2" /> Expand
+                    </Button>
+                </Link>
             </div>
           </div>
 
-          <div className="space-y-6 flex-grow">
-            {transactions.length > 0 ? (
-              transactions.slice(0, 5).map((tx: any, i: number) => (
-                <div key={i} className="flex gap-4 group cursor-pointer">
-                  <div className="w-0.5 bg-primary/20 group-hover:bg-primary transition-colors" />
-                  <div className="space-y-1">
-                    <div className="text-[10px] font-bold tracking-wider uppercase text-foreground/90 flex items-center gap-2">
-                      TX_{(tx.txHash || tx._id).substring(2, 8).toUpperCase()}_AUTH
-                      {tx.category === 'repayment' && <span className="text-[8px] bg-green-500/20 text-green-400 px-1 rounded">REPAY</span>}
-                    </div>
-                    <div className="text-[11px] text-foreground/50">
-                      {tx.title} // -${parseFloat(tx.amount || 0).toFixed(2)}
-                    </div>
-                  </div>
-                  <div className="ml-auto text-[10px] text-foreground/20 whitespace-nowrap">
-                    {formatDistanceToNow(new Date(tx._creationTime), { addSuffix: true }).toUpperCase()}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center opacity-30">
-                <History className="w-8 h-8 mb-2" />
-                <span className="text-[10px] uppercase tracking-widest">No Recent Activity</span>
+          <div className="meridian-card p-8 flex flex-col min-h-[400px]">
+            <div className="flex items-center justify-between mb-8">
+              <div className="text-[10px] font-black text-primary uppercase tracking-[0.2em] italic underline decoration-secondary decoration-2 underline-offset-4">Activity Stream</div>
+              <div className="flex items-center gap-1.5 text-[9px] font-black text-muted uppercase">
+                Realtime
+                <div className="w-1 h-1 rounded-full bg-secondary animate-pulse" />
               </div>
-            )}
-          </div>
+            </div>
 
-          <Link href="/transactions" className="mt-8 text-[10px] text-foreground/40 uppercase hover:text-primary transition-colors flex items-center gap-2 group">
-            View Full Manifest
-            <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-          </Link>
+            <div className="space-y-8 flex-grow">
+              {transactions.length > 0 ? (
+                transactions.slice(0, 5).map((tx: any, i: number) => (
+                  <div key={i} className="flex gap-4 group cursor-pointer relative">
+                    <div className="w-0.5 bg-primary/5 group-hover:bg-secondary transition-colors absolute -left-4 top-0 bottom-0" />
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-black tracking-wider uppercase text-primary flex items-center gap-2">
+                        TX_{i+102} // AUTH
+                        {tx.category === 'repayment' && <span className="text-[8px] bg-[#0B7B5E]/10 text-[#0B7B5E] px-1.5 py-0.5 rounded font-black italic">REPAY</span>}
+                      </div>
+                      <div className="text-xs font-bold text-muted uppercase tracking-tight">
+                        {tx.title} <span className="text-primary/20 mx-1">/</span> <span className="text-primary">-${parseFloat(tx.amount || 0).toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <div className="ml-auto text-[9px] font-black text-muted/40 uppercase whitespace-nowrap italic">
+                      {formatDistanceToNow(new Date(tx._creationTime), { addSuffix: true })}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center opacity-20 space-y-4">
+                  <div className="w-12 h-12 border-2 border-dashed border-primary rounded-full flex items-center justify-center">
+                    <History className="w-6 h-6" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest italic">Waiting for signal...</span>
+                </div>
+              )}
+            </div>
+
+            <Link href="/transactions" className="mt-8 pt-6 border-t border-primary/5 text-[9px] font-black text-primary/40 uppercase hover:text-secondary transition-colors flex items-center gap-2 group italic">
+              Access Full Ledger
+              <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
         </div>
       </div>
     </div>
