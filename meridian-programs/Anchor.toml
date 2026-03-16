@@ -1,0 +1,13 @@
+[profile.default]
+src = "programs"
+out = "target"
+scripts = ["tests/meridian.ts"]
+
+[rpc_endpoints]
+devnet = "https://api.devnet.solana.com"
+
+[programs.devnet]
+collateral_vault = "CoLLatEraLVauLt1111111111111111111111111111"
+credit_engine = "CreDitEnGinE111111111111111111111111111111"
+bnpl_checkout = "BnPlCheCkout11111111111111111111111111111"
+repayment_tracker = "RepayMenTTraCker1111111111111111111111111"
