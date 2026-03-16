@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
-declare_id!("BnPlCheCkout11111111111111111111111111111");
+declare_id!("8RmacTYt2VQWSWE6WNyNAdTLeYXX7UPCWTtaGRebdcA5");
 
 #[program]
 pub mod bnpl_checkout {
@@ -44,7 +44,7 @@ pub mod bnpl_checkout {
         let cpi_accounts = Transfer {
             from: ctx.accounts.user_usdc.to_account_info(),
             to: ctx.accounts.merchant_usdc.to_account_info(),
-            authority: ctx.accounts.user.to_account_info(),
+            authority: ctx.accounts.owner.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         token::transfer(CpiContext::new(cpi_program, cpi_accounts), order_state.installment_amount)?;

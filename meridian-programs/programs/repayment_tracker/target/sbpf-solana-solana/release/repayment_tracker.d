@@ -1,0 +1,1 @@
+/Users/jaibajrang/Desktop/Projects/solana/polaris-pay/meridian-programs/programs/repayment_tracker/target/sbpf-solana-solana/release/repayment_tracker.so: /Users/jaibajrang/Desktop/Projects/solana/polaris-pay/meridian-programs/programs/repayment_tracker/src/lib.rs

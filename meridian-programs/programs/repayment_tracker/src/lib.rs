@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("RepayMenTTraCker1111111111111111111111111");
+declare_id!("4fkfzDbGdpyRtAByZWQ4xskB6AKfpHtFwy8mTTNx7V1G");
 
 #[program]
 pub mod repayment_tracker {

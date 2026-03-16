@@ -5,12 +5,12 @@ import { api } from "@/convex/_generated/api";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
-// Placeholder IDs for the client
+// Real Deployed Program IDs (Solana Devnet)
 export const PROGRAM_IDS = {
-  collateralVault: new PublicKey("CoLLatEraLVauLt1111111111111111111111111111"),
-  creditEngine: new PublicKey("CreDitEnGinE111111111111111111111111111111"),
-  bnplCheckout: new PublicKey("BnPlCheCkout11111111111111111111111111111"),
-  repaymentTracker: new PublicKey("RepayMenTTraCker1111111111111111111111111"),
+  collateralVault: new PublicKey("BE8LMagbTc3Rcy6UV6NDyCSfSSygZ5k9fB1v4WPBmfwb"),
+  creditEngine: new PublicKey("3vERhcczWPCJLhw6RygnbJAwzFKywbFwwB2efnXefAPE"),
+  bnplCheckout: new PublicKey("7SDq9q5JrKZGHvaz5dcgHpzAFy5LP583BGHJuyExHPnX"),
+  repaymentTracker: new PublicKey("4fkfzDbGdpyRtAByZWQ4xskB6AKfpHtFwy8mTTNx7V1G"),
 };
 
 export class MeridianClient {

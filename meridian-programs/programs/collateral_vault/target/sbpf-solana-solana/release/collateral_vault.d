@@ -1,0 +1,1 @@
+/Users/jaibajrang/Desktop/Projects/solana/polaris-pay/meridian-programs/programs/collateral_vault/target/sbpf-solana-solana/release/collateral_vault.so: /Users/jaibajrang/Desktop/Projects/solana/polaris-pay/meridian-programs/programs/collateral_vault/src/lib.rs

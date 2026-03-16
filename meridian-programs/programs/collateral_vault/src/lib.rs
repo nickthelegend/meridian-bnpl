@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
-declare_id!("CoLLatEraLVauLt1111111111111111111111111111");
+declare_id!("BE8LMagbTc3Rcy6UV6NDyCSfSSygZ5k9fB1v4WPBmfwb");
 
 #[program]
 pub mod collateral_vault {
@@ -38,9 +38,10 @@ pub mod collateral_vault {
         require!(vault_state.is_repaid, MeridianError::RepaymentNotComplete);
 
         let amount = ctx.accounts.vault_usdc.amount;
+        let user_key = vault_state.owner.key();
         let seeds = &[
             b"vault",
-            vault_state.owner.as_ref(),
+            user_key.as_ref(),
             &[ctx.bumps.vault_state],
         ];
         let signer = &[&seeds[..]];
@@ -90,12 +91,12 @@ pub struct DepositCollateral<'info> {
 pub struct WithdrawCollateral<'info> {
     #[account(
         mut,
-        seeds = [b"vault", user.key().as_ref()],
+        seeds = [b"vault", owner.key().as_ref()],
         bump,
         has_one = owner
     )]
     pub vault_state: Account<'info, VaultState>,
-    pub user: Signer<'info>,
+    pub owner: Signer<'info>,
     #[account(mut)]
     pub user_usdc: Account<'info, TokenAccount>,
     #[account(mut)]

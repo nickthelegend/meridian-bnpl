@@ -1,0 +1,1 @@
+/Users/jaibajrang/Desktop/Projects/solana/polaris-pay/meridian-programs/programs/bnpl_checkout/target/sbpf-solana-solana/release/bnpl_checkout.so: /Users/jaibajrang/Desktop/Projects/solana/polaris-pay/meridian-programs/programs/bnpl_checkout/src/lib.rs
