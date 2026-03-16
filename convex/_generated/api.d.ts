@@ -8,9 +8,9 @@
  * @module
  */
 
+import type * as faucet from "../faucet.js";
 import type * as merchants from "../merchants.js";
 import type * as orders from "../orders.js";
-import type * as seed from "../seed.js";
 import type * as vaults from "../vaults.js";
 
 import type {
@@ -20,9 +20,9 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  faucet: typeof faucet;
   merchants: typeof merchants;
   orders: typeof orders;
-  seed: typeof seed;
   vaults: typeof vaults;
 }>;
 
