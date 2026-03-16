@@ -1,7 +1,9 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { MeridianClient } from '@/lib/meridian-client';
+import { getAssociatedTokenAddress, getAccount } from '@solana/spl-token';
+import { MUSDC } from '@/lib/tokens';
 
 export function usePolaris() {
     const { connection } = useConnection();
@@ -10,15 +12,34 @@ export function usePolaris() {
     
     const [loading, setLoading] = useState(false);
     const [txHash, setTxHash] = useState<string | null>(null);
+    const [musdcBalance, setMusdcBalance] = useState<number>(0);
 
     const client = useMemo(() => {
         if (!connected || !wallet) return null;
         return new MeridianClient(connection, wallet);
     }, [connected, wallet, connection]);
 
+    const updateMUSDCBalance = useCallback(async () => {
+        if (!publicKey) return;
+        try {
+            const ata = await getAssociatedTokenAddress(MUSDC.mint, publicKey);
+            const account = await getAccount(connection, ata);
+            setMusdcBalance(Number(account.amount) / 10**MUSDC.decimals);
+        } catch (e) {
+            setMusdcBalance(0);
+        }
+    }, [publicKey, connection]);
+
+    useEffect(() => {
+        if (connected) {
+            updateMUSDCBalance();
+            const interval = setInterval(updateMUSDCBalance, 5000);
+            return () => clearInterval(interval);
+        }
+    }, [connected, updateMUSDCBalance]);
+
     const getCreditLimit = useCallback(async () => {
         if (!client) return "0";
-        // Real call to client
         return "4500"; 
     }, [client]);
 
@@ -28,6 +49,7 @@ export function usePolaris() {
         try {
             const hash = await client.depositCollateral(parseFloat(amount), 180 * 24 * 60 * 60);
             setTxHash(hash);
+            await updateMUSDCBalance();
             return { success: true, txHash: hash };
         } catch (error) {
             console.error("Deposit failed:", error);
@@ -35,7 +57,7 @@ export function usePolaris() {
         } finally {
             setLoading(false);
         }
-    }, [client]);
+    }, [client, updateMUSDCBalance]);
 
     const getLoans = useCallback(async () => {
         if (!client) return [];
@@ -60,6 +82,7 @@ export function usePolaris() {
     return {
         loading,
         txHash,
+        musdcBalance,
         depositLiquidity,
         getCreditLimit,
         getLoans,
@@ -67,6 +90,7 @@ export function usePolaris() {
         authenticated: connected,
         address: publicKey?.toBase58(),
         connection,
-        publicKey
+        publicKey,
+        updateMUSDCBalance
     };
 }

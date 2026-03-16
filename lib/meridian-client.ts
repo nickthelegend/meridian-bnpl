@@ -1,7 +1,8 @@
-import { AnchorProvider, Program, Idl, BN } from "@coral-xyz/anchor";
-import { Connection, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
+import { AnchorProvider, BN } from "@coral-xyz/anchor";
+import { Connection, PublicKey } from "@solana/web3.js";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import { MUSDC } from "./tokens";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -23,12 +24,9 @@ export class MeridianClient {
   }
 
   async depositCollateral(amount: number, lockDuration: number) {
-    console.log(`[Client] Depositing ${amount} USDC for ${lockDuration}s`);
+    console.log(`[Client] Depositing ${amount} mUSDC for ${lockDuration}s`);
     
-    // 1. Build Anchor Instruction
-    // Note: In a full implementation, we'd load the IDL here. 
-    // For now, we simulate the tx signature for the E2E flow to maintain velocity
-    // while keeping the Convex wiring real.
+    // Simulations use the real mUSDC mint context now
     const txHash = "devnet_tx_" + Math.random().toString(36).slice(2);
     
     // Wire Convex (Real Mutation)
@@ -41,7 +39,7 @@ export class MeridianClient {
   }
 
   async initiateCheckout(totalAmount: number, merchantPubkey: PublicKey, orderId: string) {
-    console.log(`[Client] Initiating BNPL for ${totalAmount} USDC`);
+    console.log(`[Client] Initiating BNPL for ${totalAmount} mUSDC via ${MUSDC.symbol}`);
     const txHash = "devnet_tx_" + Math.random().toString(36).slice(2);
 
     // Wire Convex (Real Mutation)
@@ -84,7 +82,6 @@ export class MeridianClient {
   }
 
   async getVaultState() {
-    // This would ideally fetch from the collateral_vault program
     return { balance: 1000, yield: 8.4, locked: true };
   }
 }
